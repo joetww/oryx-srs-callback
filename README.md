@@ -1,8 +1,5 @@
-# 步驟一：初始化專案
+# 初始化新的 npm 專案（自動接受所有預設值）
 npm init -y
 
-# 步驟二：安裝必要的套件
-npm install express   # Web 應用程式框架
-npm install axios    # HTTP 客戶端
-npm install morgan   # HTTP 請求紀錄中介軟體
-npm install lodash   # JavaScript 工具函式庫
+# 安裝需要的套件
+npm install express axios morgan lodash
