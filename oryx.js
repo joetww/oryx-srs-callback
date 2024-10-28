@@ -24,6 +24,31 @@ app.use(morgan('combined', { stream: accessLogStream }));
 // Middleware 來解析 JSON 請求
 app.use(express.json());
 
+// 新增封包紀錄檔案
+const packetLogFile = path.join(logsDir, 'packets.log');
+
+// 新增封包紀錄中介軟體
+app.use((req, res, next) => {
+    const packetData = {
+        timestamp: new Date().toISOString(),
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
+        body: req.body,
+        query: req.query,
+        ip: req.ip
+    };
+
+    // 將封包資料寫入 packets.log 檔案
+    fs.appendFile(packetLogFile, JSON.stringify(packetData, null, 2) + '\n', (err) => {
+        if (err) {
+            console.error('Error writing packet log:', err);
+        }
+    });
+
+    next(); // 繼續處理請求
+});
+
 // 取得 secret key 的函數
 async function getSecret() {
     try {
@@ -85,7 +110,6 @@ async function sendTelegramMessage(action, vhost, app, stream) {
     }
 }
 
-
 app.post('/callback', async (req, res) => {
     console.log('Request body:', req.body); // 打印請求的整個 body
 
@@ -93,7 +117,7 @@ app.post('/callback', async (req, res) => {
         timestamp: new Date(),
         body: req.body,
         query: req.query,
-        headers: req.headers,
+        headers: req.headers
     };
 
     fs.appendFile(path.join(logsDir, 'requests.log'), JSON.stringify(logData, null, 2) + '\n', (err) => {
@@ -133,14 +157,11 @@ app.post('/callback', async (req, res) => {
             const response = { code: 0 };
             return res.status(200).json(response);
         });
-}
-
+    }
 });
-
 
 // 啟動伺服器並觸發一次 getSecret
 app.listen(port, async () => {
     console.log(`Oryx SRS callback service is running on http://localhost:${port}`);
     await getSecret();
 });
-
